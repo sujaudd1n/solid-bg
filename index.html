@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solid BG</title>
+    <style>
+        body {
+            height: 100dvh;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        input {
+            opacity: 0;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const colorInput = document.querySelector(".colorInput");
+            let timeoutId;
+
+            function setup() {
+                const storedColor = localStorage.getItem("color") ?? "white"
+                colorInput.value = document.body.style.background = storedColor;
+
+                colorInput.oninput = (event) => {
+                    const currentColor = event.target.value;
+                    if (CSS.supports("color", currentColor)) {
+                        document.body.style.background = currentColor;
+                        localStorage.setItem("color", currentColor);
+                    }
+                }
+
+                const wakeUpEvents = ["pointermove", "keydown", "wheel", "click"]
+                wakeUpEvents.forEach(event => {
+                    document.addEventListener(event, wakeUp);
+                })
+
+                document.addEventListener("keydown", (event) => {
+                    if (document.activeElement === colorInput) return;
+                    if (event.ctrlKey) return;
+                    if (['a', 'r'].includes(event.key)) event.preventDefault();
+                    switch (event.key) {
+                        case 'a': { appendColor(); break; }
+                        case 'r': { resetColor(); break; }
+                        case 'f': { toggleFullscreen(); break; }
+
+                    }
+                })
+            }
+            setup();
+
+            function wakeUp() {
+                clearInterval(timeoutId);
+                makeUIVisible();
+                timeoutId = setInterval(() => {
+                    makeUIDisappear();
+                }, 2000)
+
+                function makeUIDisappear() {
+                    colorInput.style.opacity = "0";
+                    document.body.style.cursor = "none"
+                    colorInput.blur();
+                }
+                function makeUIVisible() {
+                    colorInput.style.opacity = "1";
+                    document.body.style.cursor = "auto"
+                }
+            }
+
+            function appendColor() {
+                const val = colorInput.value;
+                console.log(val)
+                colorInput.value = "";
+                colorInput.value = val
+                colorInput.focus();
+            }
+
+            function resetColor() {
+                colorInput.value = "";
+                colorInput.focus();
+            }
+
+            function toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen()
+                }
+                else if (document.exitFullscreen) {
+                    document.exitFullscreen()
+                }
+
+            }
+        })
+    </script>
+
+</head>
+
+<body>
+    <input class="colorInput" type="color">
+</body>
+
+</html>
